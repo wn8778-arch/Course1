@@ -21,6 +21,7 @@ h1{margin:0;font-size:min(22px,calc((100vw - 36px)/19.5));font-weight:900;white-
 #st{display:flex;gap:8px;padding:14px 0 4px}
 #st button{flex:1;border:2px solid var(--ln);background:var(--sf);color:var(--tx);border-radius:12px;padding:8px 0;font:inherit;font-size:13px;line-height:1.3;cursor:pointer}
 #st button span{display:block;font-size:22px}
+#st button[disabled]{opacity:.4;cursor:not-allowed}
 #st button.on{border-color:var(--pr);background:var(--hl);font-weight:700}
 #st button.dn{border-color:var(--ok);background:#e6f5ee}
 .card{background:var(--sf);border:1px solid var(--ln);box-shadow:none;border-radius:16px;padding:22px 18px;margin:12px 0}
@@ -94,13 +95,15 @@ function fp(k,t,x){return '<div class="fp '+(x||"")+'"><img id="fi" src="'+IMG[k
 var intro=true,ch=0,pg=0,done=[];
 try{done=JSON.parse(localStorage.getItem("orgDone3")||"[]")}catch(e){}
 function g(i){return document.getElementById(i)}
+function fu(){for(var i=0;i<C.length;i++)if(done.indexOf(i)<0)return i;return C.length}
 function sv(){try{localStorage.setItem("orgDone3",JSON.stringify(done))}catch(e){}}
 function upd(){var n=done.length;g("pb").style.width=n/C.length*100+"%";var p=g("pl");
 if(n===C.length){p.innerHTML='수료 완료 · <button class="lk" id="cb">수료증 발급</button>';g("cb").onclick=cert}else p.textContent=n+" / "+C.length+" 단원 완료";
-var h="";C.forEach(function(c,i){h+='<button class="'+(i===ch?"on ":"")+(done.indexOf(i)>-1?"dn":"")+'" data-i="'+i+'"><span>'+c.i+"</span>"+c.t+"</button>"});
+var h="";C.forEach(function(c,i){h+='<button class="'+(i===ch?"on ":"")+(done.indexOf(i)>-1?"dn":"")+'"'+(i>fu()?" disabled":"")+' data-i="'+i+'"><span>'+c.i+"</span>"+c.t+"</button>"});
 g("st").innerHTML=h;g("st").querySelectorAll("button").forEach(function(b){b.onclick=function(){intro=false;ch=+b.dataset.i;pg=0;show()}})}
 function show(){
 if(intro){showIntro();return}
+if(ch>fu()){ch=fu();pg=0}
 var c=C[ch],n=c.p.length,h="",quiz=pg>=n,last=ch===C.length-1;
 if(!quiz){h='<div class="card">'+fp(ch===4?"notice":"ex",c.b[pg])+'<p class="sub">'+c.i+" "+(ch+1)+"단원 "+c.t+" · "+(pg+1)+"/"+(n+1)+"</p><h2>"+c.p[pg][0]+"</h2>"+c.p[pg][1]+"</div>"}
 else{h='<div class="card">'+fp("ex","문제를 풀어 볼까요? O일까요, X일까요?")+'<p class="sub">'+c.i+" "+(ch+1)+"단원 확인문제 · "+(n+1)+"/"+(n+1)+"</p><h2>"+c.q+'</h2><div class="ox"><button data-v="1" aria-label="맞다">O</button><button data-v="0" aria-label="틀리다">X</button></div><div id="fb" role="status"></div></div>'}
@@ -110,7 +113,7 @@ g("pv").onclick=function(){if(pg>0)pg--;else if(ch===0)intro=true;else{ch--;pg=C
 g("nx").onclick=function(){if(!quiz)pg++;else if(!last){ch++;pg=0}else{showDone();return}show();window.scrollTo(0,0)};
 if(quiz)g("ct").querySelectorAll(".ox button").forEach(function(b){b.onclick=function(){var fb=g("fb");g("ct").querySelectorAll(".ox button").forEach(function(o){o.classList.remove("r","w")});
 if(+b.dataset.v===c.a){b.classList.add("r");fb.className="";fb.style.color="var(--ok)";fb.textContent="";g("fi").src=IMG.good;g("bb").textContent="정답이에요! "+c.e;g("nx").disabled=false;if(done.indexOf(ch)<0){done.push(ch);sv()}upd()}
-else{b.classList.add("w");fb.style.color="var(--no)";fb.textContent="";g("fi").src=IMG.no;g("bb").textContent="앗, 아니에요. 다시 골라 보세요!"}}});
+else{b.classList.add("w");fb.style.color="var(--no)";fb.textContent="";g("fi").src=IMG.no;g("bb").textContent="앗, 아니에요! 정답을 맞혀야 다음으로 넘어갈 수 있어요."}}});
 upd()}
 function showIntro(){
 g("ct").innerHTML=fp("welcome","안녕하세요, 피포예요! 교육 목적부터 알려 드릴게요.")+'<div class="card"><h2>교육 목적</h2><div class="hi">원산지 표시에 대한 정확한 이해와 친절한 소통으로 <b>원산지 청렴도를 높이기 위함</b>입니다.</div><p>외부체감도 <b>65.88점</b>(전년 대비 31.88점↓), 설명·소통·전문성 부족을 개선하기 위한 교육입니다.</p><p>그래서 점검 과정에서 <b>목적과 절차를 먼저 설명</b>하고 <b>친절하고 정확하게 응대</b>하는 것이 핵심입니다.</p><h3>교육을 마치면</h3><div class="st"><i>1</i><div>목적과 절차를 설명하며 친절하게 응대해요.</div></div><div class="st"><i>2</i><div>제도의 목적과 대상을 알아요.</div></div><div class="st"><i>3</i><div>올바른 표시와 위반 처분을 알아요.</div></div><p class="sub">5개 단원 학습 → 단원별 O/X 문제 → 수료증 발급</p></div><div class="nv"><button id="go">교육 시작하기</button></div><div class="lg"><img src="'+IMG.logo+'" alt="국립수산물품질관리원"></div>';
@@ -143,19 +146,19 @@ var s={};try{s=JSON.parse(localStorage.getItem("orgCert2")||"{}")}catch(e){}
 g("ct").innerHTML='<div class="card np"><h2>수료증 발급</h2><p class="sub" style="margin:0 0 4px">구분을 선택해 주세요</p><div class="ox rl"><button data-r="명예감시원">명예감시원</button><button data-r="지도조사원">지도조사원</button></div><p id="rm" style="color:var(--no);font-weight:700;margin:6px 0 0"></p><label>이름 (예: 홍길동)<input id="cn" maxlength="20" autocomplete="off"></label><button class="ng" id="cg">확인</button></div><div id="cv"></div>';
 
 var role="";g("ct").querySelectorAll(".rl button").forEach(function(b){b.onclick=function(){role=b.dataset.r;g("rm").textContent="";g("ct").querySelectorAll(".rl button").forEach(function(o){o.classList.remove("sel")});b.classList.add("sel")}});
-g("cg").onclick=function(){var n=g("cn").value.trim();if(!role){g("rm").textContent="구분(명예감시원 또는 지도조사원)을 먼저 선택해 주세요.";return}if(!n){g("cn").focus();return}n=role+" "+n;
-var d=new Date().toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric"});
-
-g("cv").innerHTML=fp("cheer","수료증 저장 후 지도조사원에게 보내주세요.","np")+'<div class="cp"><h2>수 료 증</h2><div class="nm" id="a2"></div><p style="font-size:min(18px,3.9vw)">위 사람은<br>‘원산지 청렴도 제고를 위한 담당자 교육’을<br>이수하였기에 이 증서를 수여합니다.</p><p style="margin-top:24px;margin-bottom:2px" id="a3"></p><img src="'+IMG.logo+'" alt="국립수산물품질관리원 서울지원" style="display:block;width:min(100%,340px);height:auto;margin:26px auto 0"></div><div class="nv np"><button id="pr">수료증 이미지 저장</button></div><p class="sub np">저장이 안 되면 아래에 나타나는 이미지를 길게 눌러 저장하거나 화면을 캡처하세요.</p><div id="im" class="np"></div>';
-g("a2").textContent=n;g("a3").textContent=d;
-g("pr").onclick=async function(){var b=g("pr"),r,dl=null,shown=false;b.disabled=true;
-function show2(){if(shown||!r)return;shown=true;g("im").innerHTML='<img src="'+r.url+'" alt="수료증" style="width:100%;border:1px solid var(--ln)">';
-try{var a=document.createElement("a");a.href=r.url;a.download="수료증_"+n+".png";document.body.appendChild(a);a.click();a.remove()}catch(e){}}
-try{r=await mkCert(n,d);
+g("cg").onclick=async function(){var n=g("cn").value.trim();if(!role){g("rm").textContent="구분(명예감시원 또는 지도조사원)을 먼저 선택해 주세요.";return}if(!n){g("cn").focus();return}n=role+" "+n;
+var d=new Date().toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric"}),cv=g("cv"),r;
+cv.innerHTML='<p class="sub">수료증을 만들고 있어요…</p>';
+try{r=await mkCert(n,d)}catch(e){cv.textContent="수료증을 만들지 못했어요. 다시 눌러 주세요.";return}
+cv.innerHTML=fp("cheer","수료증 저장 후 지도조사원에게 보내주세요.","np")+'<img src="'+r.url+'" alt="수료증" style="width:100%;display:block;border:1px solid var(--ln);border-radius:6px"><div class="nv np"><button id="pr">수료증 저장 / 보내기</button></div><p class="sub np" id="sm">버튼이 안 되면 수료증 이미지를 길게 눌러 ‘이미지 저장’을 선택하세요.</p>';
+g("pr").onclick=async function(){var fn="수료증_"+n+".png",dl=null,sm=g("sm");
 try{if(window.claude&&claude.use)dl=await claude.use("downloads")}catch(e){}
-if(dl){try{await dl.save({filename:"수료증_"+n+".png",data:r.blob})}catch(e){if(!e||e.code!=="declined")show2()}}else show2()}
-catch(e){g("im").textContent="이미지를 만들지 못했어요. 화면을 캡처해 저장해 주세요."}
-b.disabled=false}};
+if(dl){try{await dl.save({filename:fn,data:r.blob});return}catch(e){if(e&&e.code==="declined")return}}
+try{var fl=new File([r.blob],fn,{type:"image/png"});
+if(navigator.canShare&&navigator.canShare({files:[fl]})){await navigator.share({files:[fl],title:"수료증"});return}}
+catch(e){if(e&&e.name==="AbortError")return}
+try{var a=document.createElement("a");a.href=r.url;a.download=fn;document.body.appendChild(a);a.click();a.remove();sm.textContent="저장을 시도했어요. 저장이 안 되면 수료증 이미지를 길게 눌러 ‘이미지 저장’을 선택하세요."}catch(e){}};
+cv.scrollIntoView({behavior:"smooth"})};
 window.scrollTo(0,0)}
 show();
 </script>
